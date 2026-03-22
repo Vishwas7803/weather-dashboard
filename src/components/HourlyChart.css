@@ -1,0 +1,57 @@
+.hourly-chart {
+  padding: 20px 20px 12px;
+}
+
+.hc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.hc-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hc-hint {
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.custom-tooltip {
+  background: var(--bg3);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 140px;
+}
+
+.ct-label {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.ct-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.ct-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ct-name { color: var(--text2); flex: 1; }
+.ct-val { font-weight: 600; font-family: var(--font-display); }

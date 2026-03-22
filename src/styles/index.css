@@ -1,0 +1,116 @@
+:root {
+  --bg: #050d1a;
+  --bg2: #0a1628;
+  --bg3: #0f1f38;
+  --card: rgba(255,255,255,0.04);
+  --card-border: rgba(255,255,255,0.08);
+  --accent: #38bdf8;
+  --accent2: #818cf8;
+  --accent3: #34d399;
+  --warn: #fb923c;
+  --danger: #f87171;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --text3: #475569;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--text3); border-radius: 3px; }
+
+/* Utility */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 20px; }
+
+/* Recharts overrides */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line { stroke: rgba(255,255,255,0.06); }
+.recharts-text { fill: var(--text2) !important; font-family: var(--font-body) !important; font-size: 11px !important; }
+.recharts-tooltip-wrapper { outline: none; }
+.recharts-default-tooltip { background: var(--bg3) !important; border: 1px solid var(--card-border) !important; border-radius: 8px !important; }
+.recharts-tooltip-label { color: var(--text) !important; font-family: var(--font-body) !important; }
+.recharts-tooltip-item { color: var(--text2) !important; font-family: var(--font-body) !important; }
+.recharts-legend-item-text { color: var(--text2) !important; font-family: var(--font-body) !important; font-size: 12px !important; }
+
+/* React Datepicker overrides */
+.react-datepicker { background: var(--bg3) !important; border: 1px solid var(--card-border) !important; border-radius: var(--radius-sm) !important; font-family: var(--font-body) !important; color: var(--text) !important; }
+.react-datepicker__header { background: var(--bg2) !important; border-bottom: 1px solid var(--card-border) !important; }
+.react-datepicker__current-month,
+.react-datepicker__day-name { color: var(--text) !important; }
+.react-datepicker__day { color: var(--text2) !important; border-radius: 6px !important; }
+.react-datepicker__day:hover { background: var(--card) !important; color: var(--text) !important; }
+.react-datepicker__day--selected,
+.react-datepicker__day--in-range { background: var(--accent) !important; color: #000 !important; }
+.react-datepicker__day--in-selecting-range { background: rgba(56,189,248,0.3) !important; }
+.react-datepicker__day--keyboard-selected { background: var(--accent2) !important; color: #fff !important; }
+.react-datepicker__navigation-icon::before { border-color: var(--text2) !important; }
+.react-datepicker__day--outside-month { color: var(--text3) !important; }
+.react-datepicker-popper { z-index: 999; }
+.react-datepicker__triangle { display: none; }
+.react-datepicker__input-container input { background: var(--bg3); border: 1px solid var(--card-border); color: var(--text); padding: 10px 14px; border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 14px; outline: none; cursor: pointer; width: 100%; }
+.react-datepicker__input-container input:focus { border-color: var(--accent); }
+
+/* Card */
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 20px;
+  backdrop-filter: blur(12px);
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+
+/* Chart scroll wrapper */
+.chart-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Loader */
+.loader {
+  width: 40px; height: 40px;
+  border: 3px solid var(--card-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Error */
+.error-box {
+  background: rgba(248,113,113,0.1);
+  border: 1px solid rgba(248,113,113,0.3);
+  border-radius: var(--radius-sm);
+  padding: 16px 20px;
+  color: var(--danger);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .card { padding: 14px; }
+}
