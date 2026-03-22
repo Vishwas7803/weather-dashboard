@@ -1,10 +1,12 @@
 // Open-Meteo API integration
 // Docs: https://open-meteo.com/
 
+
+// CORRECT ✅ - split into two separate base URLs
 const BASE_URL = 'https://api.open-meteo.com/v1';
+const ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1';
 const AIR_URL = 'https://air-quality-api.open-meteo.com/v1';
 
-// WMO Weather code to description + emoji
 export const WMO_CODES = {
   0: { label: 'Clear Sky', icon: '☀️' },
   1: { label: 'Mainly Clear', icon: '🌤️' },
@@ -29,21 +31,25 @@ export const WMO_CODES = {
   99: { label: 'Heavy Thunderstorm', icon: '⛈️' },
 };
 
-// Reverse geocode using Open-Meteo's geocoding-adjacent (we use a free service)
 export async function getCityName(lat, lon) {
   try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`
+    );
     const data = await res.json();
-    return data.address?.city || data.address?.town || data.address?.village || data.address?.county || 'Your Location';
+    return (
+      data.address?.city ||
+      data.address?.town ||
+      data.address?.village ||
+      data.address?.county ||
+      'Your Location'
+    );
   } catch {
     return 'Your Location';
   }
 }
 
-// Fetch current weather + hourly for a single date
 export async function fetchCurrentWeather(lat, lon, date) {
-  const dateStr = date; // YYYY-MM-DD
-
   const params = new URLSearchParams({
     latitude: lat,
     longitude: lon,
@@ -73,8 +79,8 @@ export async function fetchCurrentWeather(lat, lon, date) {
       'precipitation',
     ].join(','),
     timezone: 'auto',
-    start_date: dateStr,
-    end_date: dateStr,
+    start_date: date,
+    end_date: date,
   });
 
   const res = await fetch(`${BASE_URL}/forecast?${params}`);
@@ -82,7 +88,6 @@ export async function fetchCurrentWeather(lat, lon, date) {
   return res.json();
 }
 
-// Fetch air quality for a single date
 export async function fetchAirQuality(lat, lon, date) {
   const params = new URLSearchParams({
     latitude: lat,
@@ -105,13 +110,31 @@ export async function fetchAirQuality(lat, lon, date) {
   return res.json();
 }
 
-// Fetch historical data for a date range
+// Archive API has a ~7-day data lag — cap end date accordingly
+function getArchiveSafeEndDate(endDate) {
+  const LAG_DAYS = 7;
+  const safeEnd = new Date();
+  safeEnd.setDate(safeEnd.getDate() - LAG_DAYS);
+
+  const requested = new Date(endDate);
+  const capped = requested < safeEnd ? requested : safeEnd;
+  return capped.toISOString().split('T')[0];
+}
+
 export async function fetchHistoricalWeather(lat, lon, startDate, endDate) {
+  const safeEndDate = getArchiveSafeEndDate(endDate);
+
+  if (startDate >= safeEndDate) {
+    throw new Error(
+      `Archive data is only available up to ${safeEndDate}. Please select a range ending before that date.`
+    );
+  }
+
   const params = new URLSearchParams({
     latitude: lat,
     longitude: lon,
     start_date: startDate,
-    end_date: endDate,
+    end_date: safeEndDate,
     daily: [
       'temperature_2m_mean',
       'temperature_2m_max',
@@ -125,34 +148,49 @@ export async function fetchHistoricalWeather(lat, lon, startDate, endDate) {
     timezone: 'auto',
   });
 
-  const res = await fetch(`${BASE_URL}/archive?${params}`);
-  if (!res.ok) throw new Error('Historical weather API error');
+  const url = `${ARCHIVE_URL}/archive?${params}`;
+  console.log('[fetchHistoricalWeather] Requesting:', url);
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Historical weather API error ${res.status}: ${text}`);
+  }
   return res.json();
 }
 
-// Fetch historical air quality
 export async function fetchHistoricalAirQuality(lat, lon, startDate, endDate) {
+  const safeEndDate = getArchiveSafeEndDate(endDate);
+
+  if (startDate >= safeEndDate) {
+    return { hourly: { time: [], pm10: [], pm2_5: [] } };
+  }
+
   const params = new URLSearchParams({
     latitude: lat,
     longitude: lon,
     start_date: startDate,
-    end_date: endDate,
+    end_date: safeEndDate,
     hourly: ['pm10', 'pm2_5'].join(','),
     timezone: 'auto',
   });
 
-  const res = await fetch(`${AIR_URL}/air-quality?${params}`);
-  if (!res.ok) throw new Error('Historical air quality API error');
+  const url = `${AIR_URL}/air-quality?${params}`;
+  console.log('[fetchHistoricalAirQuality] Requesting:', url);
+
+  const res = await fetch(url);
+  if (!res.ok) {
+    console.warn('Air quality API error:', res.status);
+    return { hourly: { time: [], pm10: [], pm2_5: [] } };
+  }
   return res.json();
 }
 
-// Helper: format date to YYYY-MM-DD
 export function toDateStr(date) {
   const d = new Date(date);
   return d.toISOString().split('T')[0];
 }
 
-// Helper: get current hour index from hourly time array
 export function getCurrentHourIndex(timeArray) {
   const now = new Date();
   const currentHour = now.getHours();
@@ -163,7 +201,6 @@ export function getCurrentHourIndex(timeArray) {
   });
 }
 
-// AQI category
 export function aqiCategory(aqi) {
   if (aqi <= 50) return { label: 'Good', color: '#34d399' };
   if (aqi <= 100) return { label: 'Fair', color: '#fbbf24' };
@@ -173,7 +210,6 @@ export function aqiCategory(aqi) {
   return { label: 'Extremely Poor', color: '#991b1b' };
 }
 
-// UV Index category
 export function uvCategory(uv) {
   if (uv <= 2) return { label: 'Low', color: '#34d399' };
   if (uv <= 5) return { label: 'Moderate', color: '#fbbf24' };
@@ -182,24 +218,25 @@ export function uvCategory(uv) {
   return { label: 'Extreme', color: '#c084fc' };
 }
 
-// Convert celsius to fahrenheit
 export function toFahrenheit(c) {
-  return (c * 9/5 + 32).toFixed(1);
+  return (c * 9 / 5 + 32).toFixed(1);
 }
 
-// Format sunrise/sunset to IST
 export function toIST(timeStr) {
   if (!timeStr) return '--';
   try {
     const d = new Date(timeStr);
-    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+    return d.toLocaleTimeString('en-IN', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Kolkata',
+    });
   } catch {
     return timeStr;
   }
 }
 
-// Wind direction degrees to compass
 export function degToCompass(deg) {
-  const dirs = ['N','NE','E','SE','S','SW','W','NW'];
+  const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
   return dirs[Math.round(deg / 45) % 8];
 }
