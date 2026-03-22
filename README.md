@@ -68,7 +68,7 @@ npm run preview
 ## 📡 APIs Used
 
 - **Open-Meteo Forecast**: `https://api.open-meteo.com/v1/forecast`
-- **Open-Meteo Archive**: `https://api.open-meteo.com/v1/archive`
+- **Open-Meteo Archive**: `https://archive-api.open-meteo.com/v1/archive`
 - **Open-Meteo Air Quality**: `https://air-quality-api.open-meteo.com/v1/air-quality`
 - **Nominatim** (OpenStreetMap): Reverse geocoding for city name
 
